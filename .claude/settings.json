@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(**/application-local.yml)",
+      "Read(**/application-local.yaml)",
+      "Read(**/*.pem)",
+      "Read(**/*.key)",
+      "Edit(./.env)",
+      "Edit(./.env.*)",
+      "Edit(**/.env)",
+      "Edit(**/.env.*)",
+      "Edit(**/application-local.yml)",
+      "Edit(**/application-local.yaml)",
+      "Edit(**/*.pem)",
+      "Edit(**/*.key)"
+    ],
+    "allow": [
+      "Bash(git status)",
+      "Bash(git status *)",
+      "Bash(git diff)",
+      "Bash(git diff *)",
+      "Bash(git log)",
+      "Bash(git log *)",
+      "Bash(git branch)",
+      "Bash(git branch *)",
+      "Bash(git show *)",
+      "Bash(mvn -version)",
+      "Bash(mvn --version)",
+      "Bash(npm -v)",
+      "Bash(npm --version)",
+      "Bash(node -v)",
+      "Bash(node --version)",
+      "Bash(java -version)",
+      "Bash(java --version)",
+      "Bash(mysql --version)"
+    ]
+  }
+}
