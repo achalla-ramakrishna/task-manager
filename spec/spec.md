@@ -190,7 +190,63 @@ envelope: `{ content: [...], page, size, totalElements, totalPages }`.
 - Mobile app; i18n/localization
 - Webhooks or third-party integrations
 
-## 6. Open Questions for Approval
+## 6. Non-Functional Requirements
+
+Scoped to what a v1 solo/small-team local deployment actually needs — not enterprise targets.
+
+**Performance**
+- API responses for single-resource GET/POST/PUT/PATCH/DELETE: p95 < 300ms under local dev load
+  (single user, local MySQL). No formal load-testing requirement for v1.
+- List endpoints (`GET /api/projects`, `GET /api/projects/{id}/tasks`) must use the pagination
+  envelope from §3 — never return an unbounded result set.
+
+**Availability & Reliability**
+- No uptime SLA for v1 (local/dev deployment, not production-hosted). The app must fail fast and
+  loudly on DB unavailability at startup (§4) rather than serve degraded responses.
+- No automated backups or disaster recovery in v1 — out of scope, same as §5.
+
+**Security**
+- Passwords hashed with BCrypt (cost factor >= 10); JWT signed with a server-side secret from an
+  environment variable, never hardcoded (see `AGENTS.md` Security Guardrails).
+- All authorization checks (membership, ownership) enforced server-side per request — never
+  trust a client-supplied role or id.
+- No penetration testing or formal security audit required for v1; OWASP-Top-10-aware coding
+  practices (parameterized queries, output encoding, no secrets in logs) are still mandatory.
+
+**Observability**
+- Structured server-side logs for every unhandled exception (§4) and every authentication
+  failure, without logging password, JWT, or full request bodies containing PII.
+- No metrics/tracing infrastructure (Prometheus, OpenTelemetry) required for v1 — out of scope.
+
+**Accessibility**
+- Frontend targets WCAG 2.1 AA for the core flows (login, project list, task board): keyboard
+  navigable, sufficient color contrast, form fields labeled. No formal accessibility audit
+  required for v1, but this is a bar for review, not an aspiration.
+
+**Browser / Environment Support**
+- Latest two versions of Chrome, Firefox, Edge. No IE11 or legacy browser support. Desktop
+  viewport widths only for v1 — mobile-responsive layout is not required (see §5).
+
+**Scalability**
+- Designed for a single small team (tens of users, hundreds of projects/tasks) — no sharding,
+  caching layer, or read-replica design needed for v1. Revisit if usage assumptions change.
+
+## 7. Glossary
+
+| Term | Meaning |
+|---|---|
+| **Project** | A container that groups tasks and has exactly one `OWNER` and zero or more `MEMBER`s. |
+| **Task** | A unit of work belonging to exactly one project, with a status/priority/assignee. |
+| **Comment** | An immutable note attached to a task, authored by a project member. |
+| **Member** | Any user with access to a project — either role `OWNER` or `MEMBER` (see `ProjectMember` in §2). Not to be confused with the app-wide `User.role` (`ADMIN`/`MEMBER`), which is a separate, unrelated field. |
+| **Owner** | The project-level role held by exactly one member per project (normally its creator); can update/delete the project and manage membership. Distinct from `User.role`. |
+| **Admin** | The app-wide `User.role` value that can manage users (see §3 Users endpoints). Not a per-project role — see Open Question 1 below. |
+| **Cascade delete** | Deleting a `Project` also hard-deletes its `Task`s and their `Comment`s in the same operation (§4). |
+| **Optimistic locking** | The `version` field on `Task` used to detect and reject a stale concurrent update (§4) rather than silently overwriting it. |
+| **Boundary case** | An edge-of-input or edge-of-state scenario (e.g. empty list, max-length field, expired token) explicitly specified in §4 so behavior there isn't left to guesswork. |
+| **v1** | The scope defined by this document as it stands — everything in §5 is explicitly deferred, not assumed. |
+
+## 8. Open Questions for Approval
 
 1. Is a single app-wide `ADMIN` role sufficient, or do you want per-project admin delegation
    beyond `OWNER`/`MEMBER`?
