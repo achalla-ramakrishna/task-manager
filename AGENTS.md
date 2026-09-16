@@ -5,9 +5,10 @@ Guardrails for any agent (or human) working on this codebase. Read this before w
 ## Project Layout
 
 ```
-/backend    Spring Boot 3.x, Java 21, Maven, MySQL 8
-/frontend   React + TypeScript, Vite
-spec.md     Product/API spec — source of truth for entities and endpoints
+/backend             Spring Boot 3.x, Java 21, Maven, MySQL 8
+/frontend            React + TypeScript, Vite
+spec/spec.md         Product/API spec — source of truth for entities and endpoints
+spec/user-stories.md User stories with Given/When/Then acceptance criteria, mapped to spec/spec.md
 ```
 
 Do not restructure this layout without discussing it first.
@@ -81,16 +82,16 @@ grant is documented where a human will see it. Don't add a CLI or MCP server "ju
   business logic, no direct repository calls. Entities never cross the wire directly; always map
   to/from DTOs.
 - Bean Validation (`jakarta.validation`) annotations on request DTOs for every field constraint
-  named in `spec.md`. A global `@ControllerAdvice` exception handler produces the error envelope
-  defined in `spec.md` §3 — don't invent a different error shape per endpoint.
+  named in `spec/spec.md`. A global `@ControllerAdvice` exception handler produces the error envelope
+  defined in `spec/spec.md` §3 — don't invent a different error shape per endpoint.
 - Schema changes go through Flyway migrations (`src/main/resources/db/migration`). Never rely on
   `hibernate.ddl-auto=update` outside a throwaway local sandbox — it must be `validate` (or
   `none`) once Flyway is in place.
 - **Frontend**: functional components + hooks, TypeScript strict mode on. API types mirror the
   backend DTOs; keep a single typed API client module rather than ad hoc `fetch` calls scattered
   through components.
-- Match `spec.md` exactly for entity fields, endpoint paths, status codes, and error shapes. If
-  an implementation needs to diverge from the spec, update `spec.md` first and call it out to the
+- Match `spec/spec.md` exactly for entity fields, endpoint paths, status codes, and error shapes. If
+  an implementation needs to diverge from the spec, update `spec/spec.md` first and call it out to the
   user — don't let code and spec drift silently.
 
 ## Testing
@@ -98,7 +99,7 @@ grant is documented where a human will see it. Don't add a CLI or MCP server "ju
 - New service-layer logic gets unit tests (JUnit 5 + Mockito).
 - New controller endpoints get an integration test (`@SpringBootTest` with Testcontainers
   MySQL, or H2 if Testcontainers isn't available) covering at least the happy path and the
-  documented failure cases from `spec.md` §4.
+  documented failure cases from `spec/spec.md` §4.
 - Don't reduce or delete existing test coverage to make a change "pass" — fix the underlying
   issue instead.
 
@@ -108,7 +109,7 @@ grant is documented where a human will see it. Don't add a CLI or MCP server "ju
 - JWT signing secret and DB credentials come from environment variables / `application.yml`
   profiles — never hardcoded, never committed. `.env` and any file with real credentials must be
   in `.gitignore`.
-- All list/detail endpoints enforce the authorization rules in `spec.md` §4 (membership,
+- All list/detail endpoints enforce the authorization rules in `spec/spec.md` §4 (membership,
   ownership) server-side — never rely on the frontend to hide unauthorized data.
 - Use JPA parameterized queries; if a native/raw query is ever necessary, it must use bind
   parameters — no string-concatenated SQL.
@@ -123,12 +124,15 @@ grant is documented where a human will see it. Don't add a CLI or MCP server "ju
 - Ask before adding new major dependencies (auth libraries, state management, ORMs) — prefer
   what's already in the stack (Spring Security, Spring Data JPA, React built-ins) first.
 - Keep changes scoped to what's asked. Don't refactor unrelated code, add speculative
-  abstractions, or implement anything listed in `spec.md` §5 (Out of Scope for v1) without the
+  abstractions, or implement anything listed in `spec/spec.md` §5 (Out of Scope for v1) without the
   user explicitly asking to bring it into scope.
 
 ## Workflow
 
-- `spec.md` is the contract. Any new entity, endpoint, or behavior not in it should be added to
+- `spec/spec.md` is the contract. Any new entity, endpoint, or behavior not in it should be added to
   the spec (with a quick note to the user) before or alongside the implementation, not silently
   invented.
+- `spec/user-stories.md` gives each feature Given/When/Then acceptance criteria — use these
+  directly as the basis for integration test cases (Testing section above) rather than
+  re-deriving scenarios from scratch.
 - Prefer small, reviewable commits over one large drop.
