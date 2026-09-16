@@ -1,6 +1,6 @@
 # Project & Task Manager — v1 Spec
 
-Status: **Draft — pending approval**
+Status: **Approved (v1)** — 2026-09-16
 Owner: achalla@codewalnut.com
 Stack: Spring Boot 3 (Java 21) + MySQL 8 backend, React (TypeScript) frontend, REST/JSON over HTTPS.
 
@@ -246,10 +246,14 @@ Scoped to what a v1 solo/small-team local deployment actually needs — not ente
 | **Boundary case** | An edge-of-input or edge-of-state scenario (e.g. empty list, max-length field, expired token) explicitly specified in §4 so behavior there isn't left to guesswork. |
 | **v1** | The scope defined by this document as it stands — everything in §5 is explicitly deferred, not assumed. |
 
-## 8. Open Questions for Approval
+## 8. Decisions (Resolved 2026-09-16)
 
-1. Is a single app-wide `ADMIN` role sufficient, or do you want per-project admin delegation
-   beyond `OWNER`/`MEMBER`?
-2. Should project deletion be a hard cascade delete in v1 (as specced), or do you want
-   soft-delete/archive-only semantics instead?
-3. JWT expiry of 1h with no refresh token means users re-login hourly — acceptable for v1?
+1. **Role model**: Single app-wide `ADMIN` role, no per-project admin delegation beyond
+   `OWNER`/`MEMBER`. Confirmed — as originally specced in §2.
+2. **Project deletion**: Hard cascade delete (`Project` -> `Task` -> `Comment`), no
+   soft-delete/archive-only semantics. Confirmed — as originally specced in §3/§4.
+3. **JWT expiry**: 1h expiry, no refresh token; users re-login hourly. Confirmed — as originally
+   specced in §3/§5.
+
+No changes to entities, API surface, or boundary cases resulted from this review. Spec is
+approved as-is; implementation may proceed.
