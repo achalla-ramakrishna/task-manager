@@ -5,10 +5,11 @@ Guardrails for any agent (or human) working on this codebase. Read this before w
 ## Project Layout
 
 ```
-/backend             Spring Boot 3.x, Java 21, Maven, MySQL 8
-/frontend            React + TypeScript, Vite
-spec/spec.md         Product/API spec — source of truth for entities and endpoints
-spec/user-stories.md User stories with Given/When/Then acceptance criteria, mapped to spec/spec.md
+/backend                Spring Boot 3.x, Java 21, Maven, MySQL 8
+/frontend               React + TypeScript, Vite
+spec/spec.md            Product/API spec — source of truth for entities and endpoints
+spec/user-stories/      One file per story (actor+goal, state change, examples, acceptance
+                         criteria, boundaries/failures, not-in-scope, checks that prove it)
 ```
 
 Do not restructure this layout without discussing it first.
@@ -132,7 +133,7 @@ grant is documented where a human will see it. Don't add a CLI or MCP server "ju
 - `spec/spec.md` is the contract. Any new entity, endpoint, or behavior not in it should be added to
   the spec (with a quick note to the user) before or alongside the implementation, not silently
   invented.
-- `spec/user-stories.md` gives each feature Given/When/Then acceptance criteria — use these
-  directly as the basis for integration test cases (Testing section above) rather than
-  re-deriving scenarios from scratch.
+- `spec/user-stories/` gives each feature its own file with acceptance criteria and named
+  "Checks That Prove It" test cases — implement and name integration tests to match rather than
+  re-deriving scenarios from scratch. Start at `spec/user-stories/README.md` for the index.
 - Prefer small, reviewable commits over one large drop.
