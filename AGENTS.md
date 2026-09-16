@@ -10,6 +10,9 @@ Guardrails for any agent (or human) working on this codebase. Read this before w
 spec/spec.md            Product/API spec — source of truth for entities and endpoints
 spec/user-stories/      One file per story (actor+goal, state change, examples, acceptance
                          criteria, boundaries/failures, not-in-scope, checks that prove it)
+docs/architecture.md    Repo overview, planned module map, data flows, do-not-touch areas
+docs/conventions.md     Naming, folder structure, error/logging patterns
+docs/adr/               Architecture Decision Records — the "why" behind non-obvious choices
 ```
 
 Do not restructure this layout without discussing it first.
@@ -76,24 +79,39 @@ is added later (e.g. a GitHub or database MCP), wire it with the narrowest scope
 job, vet it before enabling, and update this section plus `.claude/settings.json` together so the
 grant is documented where a human will see it. Don't add a CLI or MCP server "just in case."
 
+## Context Layer (Competency 3: Context Engineering)
+
+`AGENTS.md` stays deliberately lean — deep, stable project knowledge lives in `docs/` and gets
+linked from here, not pasted inline. Read the linked file when the task touches that area;
+don't re-derive architecture or conventions from scratch each session.
+
+- **`docs/architecture.md`** — repo overview, planned backend/frontend module layout, request
+  and auth data flows, module map, and do-not-touch areas. Read before scaffolding new
+  structure or asking "where does X go."
+- **`docs/conventions.md`** — naming, layering rules, validation/error patterns, logging rules,
+  Flyway migration rules. Read before writing any backend or frontend code.
+- **`docs/adr/`** — one file per non-obvious decision (Context / Decision / Alternatives /
+  Consequences), indexed in `docs/adr/README.md`. Four exist already, covering the role model,
+  cascade-delete semantics, JWT expiry, and the package-by-feature structure — all decisions
+  made during spec approval. Write a new one whenever a real alternative was considered and
+  rejected, per that README's process; supersede rather than overwrite when a decision changes.
+
+**Keeping this layer honest**:
+- Refresh `docs/architecture.md`'s module map and "Status as of this writing" note once
+  `backend/`/`frontend/` are actually scaffolded — it currently describes the *planned* shape,
+  not yet reality.
+- If a session repeats a mistake, asks a question already answered in these docs, or misses a
+  rule, that's a signal to update the doc, not just correct the one session.
+- **Prune as much as you add.** A stale architecture note or a dead convention misleads the
+  agent as badly as a missing one — don't let `docs/` accumulate decisions that no longer hold.
+
 ## Coding Conventions
 
-- **Backend**: layered by feature package (`project`, `task`, `user`, `auth`, `comment`), each
-  with `controller` / `service` / `repository` / `dto` sub-packages. Controllers stay thin — no
-  business logic, no direct repository calls. Entities never cross the wire directly; always map
-  to/from DTOs.
-- Bean Validation (`jakarta.validation`) annotations on request DTOs for every field constraint
-  named in `spec/spec.md`. A global `@ControllerAdvice` exception handler produces the error envelope
-  defined in `spec/spec.md` §3 — don't invent a different error shape per endpoint.
-- Schema changes go through Flyway migrations (`src/main/resources/db/migration`). Never rely on
-  `hibernate.ddl-auto=update` outside a throwaway local sandbox — it must be `validate` (or
-  `none`) once Flyway is in place.
-- **Frontend**: functional components + hooks, TypeScript strict mode on. API types mirror the
-  backend DTOs; keep a single typed API client module rather than ad hoc `fetch` calls scattered
-  through components.
-- Match `spec/spec.md` exactly for entity fields, endpoint paths, status codes, and error shapes. If
-  an implementation needs to diverge from the spec, update `spec/spec.md` first and call it out to the
-  user — don't let code and spec drift silently.
+See `docs/conventions.md` for the full naming/layering/validation/logging rules. The one rule
+that belongs here because it's a hard requirement, not a style choice: match `spec/spec.md`
+exactly for entity fields, endpoint paths, status codes, and error shapes. If an implementation
+needs to diverge from the spec, update `spec/spec.md` first and call it out to the user — don't
+let code and spec drift silently.
 
 ## Testing
 
